@@ -1,5 +1,5 @@
 class Parser
-  SENTENCE_PUNCTUATION = /[?.!]$/
+  SENTENCE_PUNCTUATION = /[?.!]"?$/
   
   def initialize(filename)
     @filename = filename
