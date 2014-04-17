@@ -35,7 +35,7 @@ namespace :learning do
     next if !source.nil?
 
     Statistics.within_transaction do |statistics|
-      source = statistics.execute_query("INSERT INTO source (file_name) VALUES ('test') RETURNING *;", filename).first
+      source = statistics.execute_query("INSERT INTO source (file_name) VALUES ($1) RETURNING *;", filename).first
       Parser.new(filename).parse
     end
   end
@@ -47,8 +47,7 @@ namespace :learning do
     next if source.nil?
 
     Statistics.within_transaction do |statistics|
-      statistics.execute_statement "DELETE FROM source WHERE id = $1;", [source[:id]]
-      statistics.execute_statement "DELETE FROM source WHERE id = $1;", [source[:id]]
+      statistics.execute_statement "DELETE FROM source WHERE id = $1;", source["id"]
     end
   end
 end

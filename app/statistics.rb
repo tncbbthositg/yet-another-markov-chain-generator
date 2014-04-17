@@ -8,17 +8,17 @@ class Statistics
       DATABASE_NAME
     end
 
-    def execute_query(query, parameters = nil)
+    def execute_query(query, *parameters)
       Enumerator.new do |yielder|
-        execute_statement(query, parameters) do |results| 
+        execute_statement(query, *parameters) do |results| 
           results.each { |row| yielder << row }
         end
       end
     end
     
-    def execute_statement(statement, parameters = nil)
+    def execute_statement(statement, *parameters)
       within_transaction do |statistics| 
-        statistics.execute_statement(statement, parameters) do |results|
+        statistics.execute_statement(statement, *parameters) do |results|
           yield results if block_given?
         end
       end
@@ -36,7 +36,7 @@ class Statistics
     end        
     
     def find_source(file_name)
-      self.execute_query("SELECT * FROM source;").first
+      self.execute_query("SELECT * FROM source WHERE file_name = $1;", file_name).first
     end
   end
   
@@ -44,16 +44,16 @@ class Statistics
     @connection = connection
   end
   
-  def execute_query(query, parameters = nil)
+  def execute_query(query, *parameters)
     Enumerator.new do |yielder|
-      execute_statement(query, parameters) do |results|
+      execute_statement(query, *parameters) do |results|
         results.each { |row| yielder << row }
       end
     end
   end
   
-  def execute_statement(statement, parameters = nil)
-    @connection.exec(statement) do |results|
+  def execute_statement(statement, *parameters)
+    @connection.exec_params(statement, parameters) do |results|
       yield results if block_given?
     end
   end
