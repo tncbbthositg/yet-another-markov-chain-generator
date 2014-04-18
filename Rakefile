@@ -35,12 +35,15 @@ namespace :db do
           is_last BOOLEAN NOT NULL
         );'
 
+      statistics.execute_statement 'CREATE INDEX ON word (word);'
+
       statistics.execute_statement '
         CREATE TABLE pair (
           id SERIAL NOT NULL UNIQUE, 
           current_word_id INT NOT NULL REFERENCES word(id) ON DELETE CASCADE, 
           next_word_id INT NOT NULL REFERENCES word(id) ON DELETE CASCADE,
-          count INT NOT NULL
+          count INT NOT NULL,
+          pair_frequency INT NOT NULL
         );'
     end
   end
@@ -56,7 +59,9 @@ namespace :learning do
   desc "parse file with provided name"
   task :parse, [:file_name] => ["db:ensure"] do |t, args|
     filename = args[:file_name]
-    source = Statistics.find_source filename
+
+    puts "Looking for data source for #{filename}."
+    source = Statistics.find_sources(filename).first
     next if !source.nil?
 
     puts "Parsing #{filename}."
@@ -73,7 +78,7 @@ namespace :learning do
   desc "clear data from provided source"
   task :clear, [:file_name] => ["db:ensure"] do |t, args|
     filename = args[:file_name]
-    source = Statistics.find_source filename
+    source = Statistics.find_sources(filename).first
     next if source.nil?
 
     puts "Clearing data for #{filename}."
@@ -86,9 +91,13 @@ task :generate, [:file_names] do |t, args|
   filenames = args[:file_names].split(/\s+/)
   puts "Generating Markov chain for #{filenames}."
 
-  filenames.each {|name| Rake::Task['learning:parse'].invoke name}
-  source = Statistics.find_source filenames.first
+  filenames.each do |name| 
+    task = Rake::Task['learning:parse']
+    task.invoke(name)
+    task.reenable
+  end
+  sources = Statistics.find_sources(filenames).to_a
 
-  builder = Builder.new(source)
+  builder = Builder.new(*sources)
   puts builder.build_sentence
 end  
