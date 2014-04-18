@@ -18,7 +18,16 @@ namespace :db do
   desc "create database #{DATABASE_NAME}"
   task :create do
     `createdb #{DATABASE_NAME}`
-    Statistics.execute_statement 'CREATE TABLE source (id SERIAL, file_name VARCHAR(128) NOT NULL UNIQUE);'
+    Statistics.execute_statement 'CREATE TABLE source (id SERIAL NOT NULL UNIQUE, file_name VARCHAR(128) NOT NULL UNIQUE);'
+    Statistics.execute_statement '      
+      CREATE TABLE word (
+        id SERIAL NOT NULL UNIQUE, 
+        source_id INT NOT NULL REFERENCES source(id) ON DELETE CASCADE,
+        word VARCHAR(128) NOT NULL, 
+        count INT NOT NULL,
+        is_first BOOLEAN NOT NULL,
+        is_last BOOLEAN NOT NULL
+      )'
   end
   
   desc "drop database #{DATABASE_NAME}"
@@ -34,9 +43,11 @@ namespace :learning do
     source = Statistics.find_source filename
     next if !source.nil?
 
+    parser = Parser.new(filename)
+
     Statistics.within_transaction do |statistics|
       source = statistics.execute_query("INSERT INTO source (file_name) VALUES ($1) RETURNING *;", filename).first
-      Parser.new(filename).parse
+      parser.words.each {|w| statistics.write_word source, w}
     end
   end
   
@@ -46,8 +57,6 @@ namespace :learning do
     source = Statistics.find_source filename
     next if source.nil?
 
-    Statistics.within_transaction do |statistics|
-      statistics.execute_statement "DELETE FROM source WHERE id = $1;", source["id"]
-    end
+    Statistics.execute_statement "DELETE FROM source WHERE id = $1;", source["id"]
   end
 end

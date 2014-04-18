@@ -57,4 +57,9 @@ class Statistics
       yield results if block_given?
     end
   end
+  
+  def write_word(source, word)
+    execute_statement("INSERT INTO word (source_id, word, count, is_first, is_last) VALUES ($1, $2, $3, $4, $5);", 
+      source["id"], word[:word], word[:count], word[:is_first], word[:is_last])
+  end
 end

@@ -1,15 +1,18 @@
 class Parser
   SENTENCE_PUNCTUATION = /[?.!]"?$/
   
+  attr_reader :words
+  
   def initialize(filename)
-    @filename = filename
+    @words = parse(filename)
   end
   
-  def parse
+  private
+  def parse(filename)
     words = {}
     last_word = nil
     
-    File.open(@filename, 'r') do |file|
+    File.open(filename, 'r') do |file|
       text = file.read
 
       text.split.each do |s|
@@ -27,6 +30,6 @@ class Parser
       end
     end
     
-    words.each {|k, o| puts o}
+    words.values
   end
 end
