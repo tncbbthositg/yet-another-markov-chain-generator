@@ -96,11 +96,15 @@ class Statistics
   end
   
   def write_word(source, word)
+    print '.'
+
     @prepared_word = @prepared_word || @connection.prepare("insert_word", 'INSERT INTO word (source_id, word, count, is_first, is_last) VALUES ($1, $2, $3, $4, $5);')
     execute_prepared_statement('insert_word', source["id"], word[:word], word[:count], word[:is_first], word[:is_last])
   end
   
   def write_pair(source, pair)
+    print '.'
+    
     @prepared_pair = @prepared_pair || @connection.prepare("insert_pair", "
       INSERT INTO pair (current_word_id, next_word_id, count, pair_frequency)
       SELECT 

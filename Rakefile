@@ -70,8 +70,14 @@ namespace :learning do
 
     Statistics.within_transaction do |statistics|
       source = statistics.execute_query("INSERT INTO source (file_name) VALUES ($1) RETURNING *;", filename).first
+      
+      puts "Inserting words."
       parser.words.each {|w| statistics.write_word source, w}
+      puts ""
+      
+      puts "Inserting pairs."
       parser.pairs.each {|p| statistics.write_pair source, p}
+      puts ""
     end
   end
   
