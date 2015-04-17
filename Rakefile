@@ -43,7 +43,7 @@ namespace :db do
           current_word_id INT NOT NULL REFERENCES word(id) ON DELETE CASCADE,
           next_word_id INT NOT NULL REFERENCES word(id) ON DELETE CASCADE,
           count INT NOT NULL,
-          pair_frequency INT NOT NULL
+          pair_frequency NUMERIC(10, 9) NOT NULL
         );'
     end
   end

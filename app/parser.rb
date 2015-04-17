@@ -23,23 +23,23 @@ class Parser
       current_word_count = 0;
 
       puts "Analyzing words!"
-      text.split.each do |s|
-        words[s] = word = words[s] || { count: 0, word: s, is_first: false, is_last: false }
+      text.split.each do |current_word|
+        words[current_word] = word = words[current_word] || { count: 0, word: current_word, is_first: false, is_last: false }
         word[:count] += 1
 
         if previous_word.nil?
           word[:is_first] = true
         else
-          key = [previous_word, s]
-          pairs[key] = pair = pairs[key] || { count: 0, current_word: previous_word, next_word: s }
+          key = [previous_word, current_word]
+          pairs[key] = pair = pairs[key] || { count: 0, current_word: previous_word, next_word: current_word }
           pair[:count] += 1
         end
 
-        if s =~ SENTENCE_PUNCTUATION
+        if current_word =~ SENTENCE_PUNCTUATION
           word[:is_last] = true
           previous_word = nil
         else
-          previous_word = s
+          previous_word = current_word
         end
 
         current_word_count += 1
@@ -57,9 +57,9 @@ class Parser
   end
 
   def add_pair_frequency(pairs)
-    pairs.group_by{|pair| pair[:current_word]}.each do |word, pairs|
-      total_frequency = pairs.inject(0) {|result, pair| result + pair[:count]}
-      pairs.each {|pair| pair[:pair_frequency] = pair[:count] * 1_000_000 / total_frequency}
+    pairs.group_by { |pair| pair[:current_word] }.each do |word, pairs|
+      total_frequency = pairs.inject(0) { |result, pair| result + pair[:count] }
+      pairs.each { |pair| pair[:pair_frequency] = pair[:count] * 1.0 / total_frequency }
     end
   end
 end

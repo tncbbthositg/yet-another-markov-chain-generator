@@ -12,6 +12,7 @@ class Builder
 
   def build_sentence
     words = [] << Statistics.get_starting_word(*@sources)
+
     while words.last["is_last"] != 't'
       words << Statistics.get_next_word(words.last, *@sources)
     end
